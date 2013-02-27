@@ -48,7 +48,7 @@ while True:
 					print "Could not calculate folder name"
 				print "Resulting file: " + resultingFilePath
 				# Call Handbrake
-				handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + resultingFilePath + "\" --preset=\"Normal\""
+				handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + resultingFilePath + "\" --preset=\"Normal\" > hb.log"
 				print "Handbrake Command Line: " + handbrakeCmdLine
 				os.chdir( handbrakePath)
 				if debugFlag:
