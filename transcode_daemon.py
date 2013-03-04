@@ -108,19 +108,22 @@ def SanityCheck():
 		
 	# check that PostProcessing.bat is installed and contains code to create *.done files
 	
-	return true
+	# check that uTorrent is set to use .!ut extension until download is complete, or that it uses a separate "completed download" directory
 	
-print "Starting transcode daemon, hit Ctrl-C to exit"
-while True:
-	try:
-		sane = SanityCheck()
-		if not sane:
-			sys.exit()
-			
-		ScanForBtFiles()
-		ScanForNPVRFiles()
-		time.sleep(pollRate*60)
-	except KeyboardInterrupt:
-		print "Received Ctrl-C! Exiting..."
-		break
+	return true
+
+if __name__ == "__main__":
+	print "Starting transcode daemon, hit Ctrl-C to exit"
+	while True:
+		try:
+			sane = SanityCheck()
+			if not sane:
+				sys.exit()
+				
+			ScanForBtFiles()
+			ScanForNPVRFiles()
+			time.sleep(pollRate*60)
+		except KeyboardInterrupt:
+			print "Received Ctrl-C! Exiting..."
+			break
 
