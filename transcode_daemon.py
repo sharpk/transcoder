@@ -6,12 +6,15 @@ import time
 import re
 import shutil
 import sys
+import subprocess
 
 # Config
 debugFlag = False
 handbrakePath = "C:\\Program Files\\Handbrake\\"
 btDownloadPath = "C:\\Documents and Settings\\Ken\\My Documents\\Downloads"
 btbtInputFileExt = '.*\.avi$|.*\.mkv$|.*\.mp4$|.*\.3gp$'
+npvrEnable = True
+npvrPath = "C:\\Program Files\NPVR\\"
 npvrRecordingPath = ""
 destinationBasePath = "C:\\media\\video"
 outputFileExt = ".m4v"
@@ -45,6 +48,9 @@ def CalcDestinationPath(prettyFileBaseName):
 	return destinationFilePath
 
 def ConvertVideoFile(sourceFilePath, destinationFilePath):
+	# don't start Handbrake if NPVR is recording
+	if IsNPVRBusy():
+		return
 	# Call Handbrake
 	handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" > hb.log"
 	print "Handbrake Command Line: " + handbrakeCmdLine
@@ -77,7 +83,20 @@ def ScanForBtFiles():
 			# Use Handbrake to do the transcode
 			ConvertVideoFile(sourceFilePath, destinationFilePath)
 
+def IsNPVRBusy():
+	if not npvrEnable:
+		return False
+	os.chdir(npvrPath)
+	p = subprocess.Popen('NScriptHelper.exe -isinuse', shell=True, stdout=subprocess.PIPE)
+	retVal = p.stdout.read()
+	if (retVal.find('NOT RECORDING') > 0:
+		return False
+	else:
+		return True
+			
 def ScanForNPVRFiles():
+	if not npvrEnable:
+		return
 	os.chdir(npvrRecordingPath)
 	for f in os.listdir('.'):
 		if re.match('.*\.done$', f):
@@ -95,16 +114,20 @@ def SanityCheck():
 	# check that directories exist
 	if not os.path.exists(handbrakePath):
 		print "Error: Handbrake path does not exist: " + handbrakePath
-		return false
+		return False
 	if not os.path.exists(btDownloadPath):
 		print "Error: bittorrent download path does not exist: " + btDownloadPath
-		return false
-	if not os.path.exists(npvrRecordingPath):
-		print "Error: NextPVR path does not exist: " + npvrRecordingPath
-		return false
+		return False
 	if not os.path.exists(destinationBasePath):
 		print "Error: Destination path does not exist: " + destinationBasePath
-		return false
+		return False
+	if npvrEnable:
+		if not os.path.exists(npvrPath):
+			print "Error: NextPVR path does not exist: " + npvrPath
+			return False
+		if not os.path.exists(npvrRecordingPath):
+			print "Error: NextPVR recording path does not exist: " + npvrRecordingPath
+			return False
 		
 	# check that PostProcessing.bat is installed and contains code to create *.done files
 	
@@ -114,12 +137,11 @@ def SanityCheck():
 
 if __name__ == "__main__":
 	print "Starting transcode daemon, hit Ctrl-C to exit"
+	sane = SanityCheck()
+	if not sane:
+		sys.exit()
 	while True:
 		try:
-			sane = SanityCheck()
-			if not sane:
-				sys.exit()
-				
 			ScanForBtFiles()
 			ScanForNPVRFiles()
 			time.sleep(pollRate*60)
