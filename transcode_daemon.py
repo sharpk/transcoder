@@ -12,9 +12,10 @@ from xml.dom.minidom import parse
 
 # Config
 loglevel = logging.DEBUG
-handbrakePath = "C:\\Program Files\\Handbrake\\"
+dontDeleteSourceFiles = False
+handbrakePath = "C:\\Program Files\\Handbrake"
 btDownloadPath = "C:\\Documents and Settings\\Ken\\My Documents\\Downloads"
-btbtInputFileExt = '.*\.avi$|.*\.mkv$|.*\.mp4$|.*\.3gp$'
+btInputFileExt = '.*\.avi$|.*\.mkv$|.*\.mp4$|.*\.3gp$'
 npvrEnable = True
 npvrPath = "C:\\Program Files\NPVR\\"
 npvrRecordingPath = "C:\\Documents and Settings\\All Users\\Documents\\My Videos"
@@ -59,17 +60,14 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 	if IsNPVRBusy():
 		return True
 	# Call Handbrake
-	handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" > hb.log"
+	handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\""
 	logging.debug("Handbrake Command Line: " + handbrakeCmdLine)
 	os.chdir(handbrakePath)
-	if loglevel == logging.DEBUG:
-		shutil.copy(sourceFilePath, destinationFilePath)
-	else:
-		os.system(handbrakeCmdLine)
+	os.system(handbrakeCmdLine)
 	# cleanup source file
 	if os.path.exists(destinationFilePath):
-		if loglevel == logging.DEBUG:
-			logging.debug("Not deleting source file since loglevel == logging.DEBUG")
+		if dontDeleteSourceFiles:
+			logging.debug("Not deleting source file since dontDeleteSourceFiles == True")
 			return True
 		else:
 			logging.debug("Deleting source file")
@@ -106,7 +104,7 @@ def IsNPVRBusy():
 		return True
 
 def DeleteNPVRFileFromDB(sourceFilePath):
-	os.chdir(npVRPath)
+	os.chdir(npvrPath)
 	logging.debug("Removing file from NPVR DB: " + sourceFilePath)
 	subprocess.call('NScriptHelper.exe -delete ' + sourceFilePath)
 
@@ -156,7 +154,7 @@ def ScanForNPVRFiles():
 		if os.path.isdir(d):
 			for f in os.listdir(d):
 				if re.match('.*\.done$', f):
-					doneFilePath = os.path.join(npvrRecordingPath, f)
+					doneFilePath = os.path.join(npvrRecordingPath, d, f)
 					logging.debug("Found a .done file: " + doneFilePath)
 					# get rid of *.done to get actual movie file path
 					sourceFile = os.path.splitext(f)[0]
@@ -166,13 +164,15 @@ def ScanForNPVRFiles():
 					logging.debug("Calculated destination path: " + destinationFilePath)
 					# TODO: run comskip and comclean(2|3) to remove commercials
 					# run handbrake to convert file (and delete source)
+					sourceFilePath = os.path.join(npvrRecordingPath, d, sourceFile)
 					retVal = ConvertVideoFile(sourceFilePath, destinationFilePath)
 					# delete .done file
 					if retVal:
 						logging.debug("Removing .done file: " + doneFilePath)
 						os.remove(doneFilePath)
 					# do additional NextPVR cleanup?  like remove entry from NPVR DB
-					DeleteNPVRFileFromDB(os.path.join(npvrRecordingPath, sourceFile))
+					if not dontDeleteSourceFiles:
+						DeleteNPVRFileFromDB(os.path.join(npvrRecordingPath, sourceFile))
 	return
 
 def SanityCheck():
@@ -201,7 +201,7 @@ def SanityCheck():
 	
 	# TODO: check that uTorrent is set to use .!ut extension until download is complete, or that it uses a separate "completed download" directory
 	
-	return true
+	return True
 
 if __name__ == "__main__":
 	print "Starting transcode daemon, hit Ctrl-C to exit"
