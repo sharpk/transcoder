@@ -13,6 +13,7 @@ from xml.dom.minidom import parse
 # Config
 loglevel = logging.DEBUG
 dontDeleteSourceFiles = False
+maintenanceTime = 4 # hour of the day (in 24 hour format) to restart troublesome processes
 handbrakePath = "C:\\Program Files\\Handbrake"
 btDownloadPath = "C:\\Documents and Settings\\Ken\\My Documents\\Downloads"
 btInputFileExt = '.*\.avi$|.*\.mkv$|.*\.mp4$|.*\.3gp$'
@@ -203,6 +204,25 @@ def SanityCheck():
 	
 	return True
 
+class Watchdog( object ):
+    def __init__(self, restartTime):
+        self.lastCheckedDay = time.localtime(time.time()).tm_yday
+		self.restartTime = restartTime - 1 # hours in struct tm are 0-indexed
+    def check(self):
+		currentTime = time.localtime(time.time())
+		if currentTime.tm_hour >= self.restartTime and currentTime.tm_yday != self.lastCheckedDay:
+			logging.debug("Start watchdog maintenance time")
+			# restart various processes that sometimes get in a bad state
+			if npvrEnable:
+				logging.debug("Stopping NPVR Recording Service")
+				os.system('net stop "NPVR Recording Service"')
+				logging.debug("Waiting 10 seconds for service to restart")
+				time.sleep(10)
+				logging.debug("Restarting NPVR Recording Service")
+				os.system('net start "NPVR Recording Service"')
+			# TODO: restart uTorrent also
+			self.lastCheckedDay = currentTime.tm_yday
+		
 if __name__ == "__main__":
 	print "Starting transcode daemon, hit Ctrl-C to exit"
 	initDaemon()
@@ -210,8 +230,10 @@ if __name__ == "__main__":
 	sane = SanityCheck()
 	if not sane:
 		sys.exit()
+	w = Watchdog(maintenanceTime)
 	while True:
 		try:
+			w.check()
 			ScanForBtFiles()
 			ScanForNPVRFiles()
 			# Add watchdog function to restart NPVR service and possibly uTorrent server
