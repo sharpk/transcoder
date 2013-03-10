@@ -123,20 +123,23 @@ def npvrCalculateDestinationPath(sourceFile):
 	logging.debug("date: " + recorddate)
 	showname = sourceFile[:-21]
 	logging.debug("show name: " + showname)
-	# load up the xmltv file; reload it every time since it changes every 24 hours
-	dom = parse(xmltvPath)
-	for program in dom.getElementsByTagName("programme"):
-		tmpShowname = program.getElementsByTagName("title")[0].childNodes[0].data
-		tmpRecorddate = program.attributes["start"].value[:8]
-		tmpStarttime = program.attributes["start"].value[8:12]
-		tmpEndtime = program.attributes["stop"].value[8:12]
-		if tmpShowname == showname and tmpRecorddate == recorddate and tmpStarttime == starttime and tmpEndtime == endtime:
-			epnum = program.getElementsByTagName("episode-num")[0].childNodes[0].data
-			subtitle = tmpShowName = program.getElementsByTagName("sub-title")[0].childNodes[0].data
-			destinationDir = os.path.join(destinationBasePath, showname)
-			if not os.path.exists(destinationDir):
-				os.mkdir(destinationDir)
-			return os.path.join(destinationDir, showname + " - " + epnum + " - " + subtitle + outputFileExt)
+	try:
+		# load up the xmltv file; reload it every time since it changes every 24 hours
+		dom = parse(xmltvPath)
+		for program in dom.getElementsByTagName("programme"):
+			tmpShowname = program.getElementsByTagName("title")[0].childNodes[0].data
+			tmpRecorddate = program.attributes["start"].value[:8]
+			tmpStarttime = program.attributes["start"].value[8:12]
+			tmpEndtime = program.attributes["stop"].value[8:12]
+			if tmpShowname == showname and tmpRecorddate == recorddate and tmpStarttime == starttime and tmpEndtime == endtime:
+				epnum = program.getElementsByTagName("episode-num")[0].childNodes[0].data
+				subtitle = tmpShowName = program.getElementsByTagName("sub-title")[0].childNodes[0].data
+				destinationDir = os.path.join(destinationBasePath, showname)
+				if not os.path.exists(destinationDir):
+					os.mkdir(destinationDir)
+				return os.path.join(destinationDir, showname + " - " + epnum + " - " + subtitle + outputFileExt)
+	except Exception, e:
+		logging.exception(e)
 	# xmltv parsing probably failed; just use original filename
 	logging.error("XMLTV file parsing failed; calculating alternate file name")
 	destinationDir = os.path.join(destinationBasePath, showname)
