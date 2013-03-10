@@ -28,7 +28,7 @@ pollRate = 10	# in minutes
 tvFilePatterns = ["[sS][0-9]+[eE][0-9]+", "[0-9]+[xX][0-9]+"]
 
 def initDaemon():
-	logging.basicConfig(filename='transcode_daemon.log',level=loglevel)
+	logging.basicConfig(filename='transcode_daemon.log', level=loglevel, format='%(asctime)s %(funcName)s:%(lineno)d %(levelname)s:%(message)s')
 	
 def btMakePrettyFileName(sourceFilePath):
 	return string.replace(os.path.splitext(os.path.basename(sourceFilePath))[0], ".", replacementChar)
@@ -208,10 +208,10 @@ def SanityCheck():
 	return True
 
 class Watchdog( object ):
-    def __init__(self, restartTime):
-        self.lastCheckedDay = time.localtime(time.time()).tm_yday
+	def __init__(self, restartTime):
+		self.lastCheckedDay = time.localtime(time.time()).tm_yday
 		self.restartTime = restartTime - 1 # hours in struct tm are 0-indexed
-    def check(self):
+	def check(self):
 		currentTime = time.localtime(time.time())
 		if currentTime.tm_hour >= self.restartTime and currentTime.tm_yday != self.lastCheckedDay:
 			logging.debug("Start watchdog maintenance time")
