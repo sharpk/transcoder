@@ -1,3 +1,9 @@
+# Transcode daemon
+# This script monitors for downloaded video files in uTorrent or recorded video
+# from NextPVR and transcodes the video files using Handbrake
+# Copyright (c) 2013 Ken Sharp
+# License: http://opensource.org/licenses/mit-license.php
+
 import os
 import glob
 import string
@@ -10,7 +16,7 @@ import subprocess
 import logging
 from xml.dom.minidom import parse
 
-# Config
+# CONFIGURATION
 loglevel = logging.DEBUG
 dontDeleteSourceFiles = False
 maintenanceTime = 4 # hour of the day (in 24 hour format) to restart troublesome processes
