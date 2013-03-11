@@ -21,6 +21,7 @@ loglevel = logging.DEBUG
 dontDeleteSourceFiles = False
 maintenanceTime = 4 # hour of the day (in 24 hour format) to restart troublesome processes
 handbrakePath = "C:\\Program Files\\Handbrake"
+uTorrentPath = "C:\\Program Files\\uTorrent"
 btDownloadPath = "C:\\Documents and Settings\\Ken\\My Documents\\Downloads"
 btInputFileExt = '.*\.avi$|.*\.mkv$|.*\.mp4$|.*\.3gp$'
 npvrEnable = True
@@ -217,21 +218,41 @@ class Watchdog( object ):
 	def __init__(self, restartTime):
 		self.lastCheckedDay = time.localtime(time.time()).tm_yday
 		self.restartTime = restartTime - 1 # hours in struct tm are 0-indexed
+	
 	def check(self):
 		currentTime = time.localtime(time.time())
-		if currentTime.tm_hour >= self.restartTime and currentTime.tm_yday != self.lastCheckedDay:
-			logging.debug("Start watchdog maintenance time")
-			# restart various processes that sometimes get in a bad state
-			if npvrEnable:
-				logging.debug("Stopping NPVR Recording Service")
-				os.system('net stop "NPVR Recording Service"')
-				logging.debug("Waiting 10 seconds for service to restart")
-				time.sleep(10)
-				logging.debug("Restarting NPVR Recording Service")
-				os.system('net start "NPVR Recording Service"')
-			# TODO: restart uTorrent also
-			self.lastCheckedDay = currentTime.tm_yday
-		
+		#if currentTime.tm_hour >= self.restartTime and currentTime.tm_yday != self.lastCheckedDay:
+		logging.debug("Start watchdog maintenance time")
+		# restart various processes that sometimes get in a bad state
+		self.restartNPVR()
+		# restart uTorrent also
+		self.restartUTorrent()
+		self.lastCheckedDay = currentTime.tm_yday
+	
+	def restartNPVR(self):
+		if npvrEnable:
+			logging.debug("Stopping NPVR Recording Service")
+			os.system('net stop "NPVR Recording Service"')
+			logging.debug("Waiting 10 seconds for service to restart")
+			time.sleep(10)
+			logging.debug("Restarting NPVR Recording Service")
+			os.system('net start "NPVR Recording Service"')
+			
+	def restartUTorrent(self):
+		options = [ '/im', '/f /im' ]
+		for op in options:
+			killCmd = 'taskkill ' + op + ' utorrent.exe'
+			logging.debug("Killing uTorrent cmd line: " + killCmd)
+			p = subprocess.Popen(killCmd, shell=True, stdout=subprocess.PIPE)
+			retVal = p.stdout.read()
+			logging.debug("Killing uTorrent output: " + retVal.strip())
+			if retVal.find('SUCCESS') >= 0:
+				os.chdir(uTorrentPath)
+				logging.debug("Restarting uTorrent.exe")
+				subprocess.Popen('utorrent.exe')
+				return
+		logging.error("Unable to restart uTorrent")
+
 if __name__ == "__main__":
 	print "Starting transcode daemon, hit Ctrl-C to exit"
 	initDaemon()
