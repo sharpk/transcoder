@@ -221,13 +221,13 @@ class Watchdog( object ):
 	
 	def check(self):
 		currentTime = time.localtime(time.time())
-		#if currentTime.tm_hour >= self.restartTime and currentTime.tm_yday != self.lastCheckedDay:
-		logging.debug("Start watchdog maintenance time")
-		# restart various processes that sometimes get in a bad state
-		self.restartNPVR()
-		# restart uTorrent also
-		self.restartUTorrent()
-		self.lastCheckedDay = currentTime.tm_yday
+		if currentTime.tm_hour >= self.restartTime and currentTime.tm_yday != self.lastCheckedDay:
+			logging.debug("Start watchdog maintenance time")
+			# restart various processes that sometimes get in a bad state
+			self.restartNPVR()
+			# restart uTorrent also
+			self.restartUTorrent()
+			self.lastCheckedDay = currentTime.tm_yday
 	
 	def restartNPVR(self):
 		if npvrEnable:
