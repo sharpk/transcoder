@@ -98,7 +98,7 @@ def IsNPVRBusy():
 	os.chdir(npvrPath)
 	p = subprocess.Popen('NScriptHelper.exe -isinuse', shell=True, stdout=subprocess.PIPE)
 	retVal = p.stdout.read()
-	logging.debug("NScriptHelper -isinuse output: " + retVal.strip())
+	#logging.debug("NScriptHelper -isinuse output: " + retVal.strip())
 	if retVal.find('NOT RECORDING') >= 0:
 		return False
 	else:
