@@ -72,7 +72,7 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 	handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\""
 	logging.debug("Handbrake Command Line: " + handbrakeCmdLine)
 	os.chdir(handbrakePath)
-	os.system(handbrakeCmdLine)
+	subprocess.call(handbrakeCmdLine)
 	# cleanup source file
 	if os.path.exists(destinationFilePath):
 		if dontDeleteSourceFiles:
@@ -233,11 +233,17 @@ class Watchdog( object ):
 	def restartNPVR(self):
 		if npvrEnable:
 			logging.debug("Stopping NPVR Recording Service")
-			os.system('net stop "NPVR Recording Service"')
-			logging.debug("Waiting 10 seconds for service to restart")
-			time.sleep(10)
+			p = subprocess.Popen('net stop "NPVR Recording Service"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			retVal = p.stdout.read()
+			if retVal.find('successfully') < 0:
+				logging.error("NPVR service stop failed")
+				logging.error("net stop output: " + retVal.strip())
 			logging.debug("Restarting NPVR Recording Service")
-			os.system('net start "NPVR Recording Service"')
+			p = subprocess.Popen('net start "NPVR Recording Service"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			retVal = p.stdout.read()
+			if retVal.find('successfully') < 0:
+				logging.error("NPVR service start failed")
+				logging.error("net start output: " + retVal.strip())
 			
 	def restartUTorrent(self):
 		options = [ '/im', '/f /im' ]
