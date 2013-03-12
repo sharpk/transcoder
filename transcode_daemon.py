@@ -19,6 +19,7 @@ from xml.dom.minidom import parse
 # CONFIGURATION
 loglevel = logging.DEBUG
 dontDeleteSourceFiles = False
+exitOnException = True
 maintenanceTime = 4 # hour of the day (in 24 hour format) to restart troublesome processes
 handbrakePath = "C:\\Program Files\\Handbrake"
 uTorrentPath = "C:\\Program Files\\uTorrent"
@@ -145,7 +146,7 @@ def npvrCalculateDestinationPath(sourceFile):
 				if not os.path.exists(destinationDir):
 					os.mkdir(destinationDir)
 				return os.path.join(destinationDir, showname + " - " + epnum + " - " + subtitle + outputFileExt)
-	except Exception, e:
+	except Exception as e:
 		logging.exception(e)
 	# xmltv parsing probably failed; just use original filename
 	logging.error("XMLTV file parsing failed; calculating alternate file name")
@@ -181,7 +182,7 @@ def ScanForNPVRFiles():
 					if retVal:
 						logging.debug("Removing .done file: " + doneFilePath)
 						os.remove(doneFilePath)
-					# do additional NextPVR cleanup?  like remove entry from NPVR DB
+					# Remove file from NPVR DB
 					if not dontDeleteSourceFiles:
 						DeleteNPVRFileFromDB(os.path.join(npvrRecordingPath, sourceFile))
 	return
@@ -223,7 +224,7 @@ class Watchdog( object ):
 		currentTime = time.localtime(time.time())
 		if currentTime.tm_hour >= self.restartTime and currentTime.tm_yday != self.lastCheckedDay:
 			logging.debug("Start watchdog maintenance time")
-			# restart various processes that sometimes get in a bad state
+			# restart NextPVR since it sometimes gets in a bad state
 			self.restartNPVR()
 			# restart uTorrent also
 			self.restartUTorrent()
@@ -266,9 +267,13 @@ if __name__ == "__main__":
 			w.check()
 			ScanForBtFiles()
 			ScanForNPVRFiles()
-			# Add watchdog function to restart NPVR service and possibly uTorrent server
 			time.sleep(pollRate*60)
 		except KeyboardInterrupt:
 			print "Received Ctrl-C! Exiting..."
 			break
+		except Exception as e:
+			logging.error("Unexpected exception encountered")
+			logging.exception(e)
+			if exitOnException:
+				sys.exit()
 
