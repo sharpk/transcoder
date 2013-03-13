@@ -69,7 +69,7 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 	if IsNPVRBusy():
 		return True
 	# Call Handbrake
-	handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\""
+	handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
 	logging.debug("Handbrake Command Line: " + handbrakeCmdLine)
 	os.chdir(handbrakePath)
 	subprocess.call(handbrakeCmdLine)
