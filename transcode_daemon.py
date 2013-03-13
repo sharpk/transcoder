@@ -246,14 +246,28 @@ class Watchdog( object ):
 				logging.error("net start output: " + retVal.strip())
 			
 	def restartUTorrent(self):
-		options = [ '/im', '/f /im' ]
-		for op in options:
-			killCmd = 'taskkill ' + op + ' utorrent.exe'
+		if os.path.exists(os.path.join(os.environ['WINDIR'], 'System32', 'taskkill.exe')):
+			options = [ '/im', '/f /im' ]
+			for op in options:
+				killCmd = 'taskkill ' + op + ' utorrent.exe'
+				logging.debug("Killing uTorrent cmd line: " + killCmd)
+				p = subprocess.Popen(killCmd, shell=True, stdout=subprocess.PIPE)
+				retVal = p.stdout.read()
+				logging.debug("Killing uTorrent output: " + retVal.strip())
+				if retVal.find('SUCCESS') >= 0:
+					os.chdir(uTorrentPath)
+					logging.debug("Restarting uTorrent.exe")
+					subprocess.Popen('utorrent.exe')
+					return
+		else:
+			# Windows XP Home Edition does not have taskkill
+			# use tskill util instead
+			killCmd = 'tskill /v utorrent'
 			logging.debug("Killing uTorrent cmd line: " + killCmd)
 			p = subprocess.Popen(killCmd, shell=True, stdout=subprocess.PIPE)
 			retVal = p.stdout.read()
 			logging.debug("Killing uTorrent output: " + retVal.strip())
-			if retVal.find('SUCCESS') >= 0:
+			if retVal.find('End Process') >= 0:
 				os.chdir(uTorrentPath)
 				logging.debug("Restarting uTorrent.exe")
 				subprocess.Popen('utorrent.exe')
