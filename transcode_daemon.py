@@ -218,7 +218,7 @@ def SanityCheck():
 class Watchdog( object ):
 	def __init__(self, restartTime):
 		self.lastCheckedDay = time.localtime(time.time()).tm_yday
-		self.restartTime = restartTime - 1 # hours in struct tm are 0-indexed
+		self.restartTime = restartTime
 	
 	def check(self):
 		currentTime = time.localtime(time.time())
