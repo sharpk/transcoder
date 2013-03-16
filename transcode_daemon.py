@@ -291,6 +291,10 @@ if __name__ == "__main__":
 		except KeyboardInterrupt:
 			print "Received Ctrl-C! Exiting..."
 			break
+		except WindowsError as e:
+			# this sometimes happens when the file is still locked by uTorrent
+			logging.exception(e)
+			continue
 		except Exception as e:
 			logging.error("Unexpected exception encountered")
 			logging.exception(e)
