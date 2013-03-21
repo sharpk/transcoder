@@ -68,6 +68,9 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 	# don't start Handbrake if NPVR is recording
 	if IsNPVRBusy():
 		return True
+	# make sure we haven't already transcoded this file
+	if os.path.exists(destinationFilePath) and os.path.getsize(destinationFilePath) > (1024 * 1024 * 20):
+		return True
 	# Call Handbrake
 	handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
 	logging.debug("Handbrake Command Line: " + handbrakeCmdLine)
