@@ -70,6 +70,7 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 		return True
 	# make sure we haven't already transcoded this file
 	if os.path.exists(destinationFilePath) and os.path.getsize(destinationFilePath) > (1024 * 1024 * 20):
+		logging.debug('File "' + destinationFilePath + '" already exists; skipping transcode')
 		return True
 	# Call Handbrake
 	handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
