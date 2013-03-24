@@ -73,10 +73,10 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 		logging.debug('File "' + destinationFilePath + '" already exists; skipping transcode')
 	else:
 		# Call Handbrake
-		handbrakeCmdLine = "HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
+		handbrakeCmdLine = "start /wait /low HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
 		logging.debug("Handbrake Command Line: " + handbrakeCmdLine)
 		os.chdir(handbrakePath)
-		subprocess.call(handbrakeCmdLine)
+		subprocess.call(handbrakeCmdLine, shell=True)
 	# cleanup source file
 	if os.path.exists(destinationFilePath):
 		if dontDeleteSourceFiles:
