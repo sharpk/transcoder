@@ -84,7 +84,11 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 			return True
 		else:
 			logging.debug("Deleting source file")
-			os.remove(sourceFilePath)
+			try:
+				os.remove(sourceFilePath)
+			except Exception as e:
+				# log the file delete failure and continue processing other files
+				logging.exception(e)
 			return True
 	else:
 		logging.error("Error: file " + destinationFilePath + " does not exist. Handbrake probably failed.")
