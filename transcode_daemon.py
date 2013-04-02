@@ -18,6 +18,7 @@ from xml.dom.minidom import parse
 
 # CONFIGURATION
 loglevel = logging.DEBUG
+forceSD = True
 dontDeleteSourceFiles = False
 exitOnException = True
 maintenanceTime = 4 # hour of the day (in 24 hour format) to restart troublesome processes
@@ -74,6 +75,8 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 	else:
 		# Call Handbrake
 		handbrakeCmdLine = "start /wait /low HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
+		if forceSD:
+			handbrakeCmdLine += " --maxHeight 405 --maxWidth 720"
 		logging.debug("Handbrake Command Line: " + handbrakeCmdLine)
 		os.chdir(handbrakePath)
 		subprocess.call(handbrakeCmdLine, shell=True)
