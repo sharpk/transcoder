@@ -76,7 +76,7 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 		# Call Handbrake
 		handbrakeCmdLine = "start /wait /low HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
 		if forceSD:
-			handbrakeCmdLine += " --maxHeight 405 --maxWidth 720"
+			handbrakeCmdLine += " --loose-anamorphic --maxHeight 480"
 		logging.debug("Handbrake Command Line: " + handbrakeCmdLine)
 		os.chdir(handbrakePath)
 		subprocess.call(handbrakeCmdLine, shell=True)
