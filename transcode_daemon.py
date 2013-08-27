@@ -147,6 +147,7 @@ def npvrCalculateDestinationPath(sourceFile):
 		dom = parse(xmltvPath)
 		for program in dom.getElementsByTagName("programme"):
 			tmpShowname = program.getElementsByTagName("title")[0].childNodes[0].data
+			tmpShowname = tmpShowname.replace("'","")  #Remove characters that won't be present in the file name
 			tmpRecorddate = program.attributes["start"].value[:8]
 			tmpStarttime = program.attributes["start"].value[8:12]
 			tmpEndtime = program.attributes["stop"].value[8:12]
