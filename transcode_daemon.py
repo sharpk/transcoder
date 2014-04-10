@@ -23,8 +23,15 @@ dontDeleteSourceFiles = False
 exitOnException = True
 maintenanceTime = 4 # hour of the day (in 24 hour format) to restart troublesome processes
 handbrakePath = "C:\\Program Files\\Handbrake"
+#handbrakePath = "/usr/bin/"
+handbrakeBin = "HandbrakeCLI.exe"
+#handbrakeBin = "HandBrakeCLI"
+uTorrentEnable = True
 uTorrentPath = "C:\\Program Files\\uTorrent"
+uTorrentBin = "utorrent.exe"
+delugeEnable = False
 btDownloadPath = "C:\\Documents and Settings\\Ken\\My Documents\\Downloads"
+#btDownloadPath = "/home/ksharp/Downloads"
 btInputFileExt = '.*\.avi$|.*\.mkv$|.*\.mp4$|.*\.3gp$'
 npvrEnable = True
 npvrPath = "C:\\Program Files\NPVR\\"
@@ -74,7 +81,7 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 		logging.debug('File "' + destinationFilePath + '" already exists; skipping transcode')
 	else:
 		# Call Handbrake
-		handbrakeCmdLine = "start /wait /low HandbrakeCLI.exe -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
+		handbrakeCmdLine = "start /wait /low " + handbrakeBin + " -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
 		if forceSD:
 			handbrakeCmdLine += " --loose-anamorphic --maxHeight 480"
 		logging.debug("Handbrake Command Line: " + handbrakeCmdLine)
@@ -261,15 +268,15 @@ class Watchdog( object ):
 		if os.path.exists(os.path.join(os.environ['WINDIR'], 'System32', 'taskkill.exe')):
 			options = [ '/im', '/f /im' ]
 			for op in options:
-				killCmd = 'taskkill ' + op + ' utorrent.exe'
+				killCmd = 'taskkill ' + op + ' ' + uTorrentBin
 				logging.debug("Killing uTorrent cmd line: " + killCmd)
 				p = subprocess.Popen(killCmd, shell=True, stdout=subprocess.PIPE)
 				retVal = p.stdout.read()
 				logging.debug("Killing uTorrent output: " + retVal.strip())
 				if retVal.find('SUCCESS') >= 0:
 					os.chdir(uTorrentPath)
-					logging.debug("Restarting uTorrent.exe")
-					subprocess.Popen('utorrent.exe')
+					logging.debug("Restarting uTorrent")
+					subprocess.Popen(uTorrentBin)
 					return
 		else:
 			# Windows XP Home Edition does not have taskkill
@@ -281,8 +288,8 @@ class Watchdog( object ):
 			logging.debug("Killing uTorrent output: " + retVal.strip())
 			if retVal.find('End Process') >= 0:
 				os.chdir(uTorrentPath)
-				logging.debug("Restarting uTorrent.exe")
-				subprocess.Popen('utorrent.exe')
+				logging.debug("Restarting uTorrent")
+				subprocess.Popen(uTorrentBin)
 				return
 		logging.error("Unable to restart uTorrent")
 
