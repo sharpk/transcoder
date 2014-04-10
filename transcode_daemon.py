@@ -162,6 +162,7 @@ def npvrCalculateDestinationPath(sourceFile):
 	logging.debug("show name: " + showname)
 	try:
 		# load up the xmltv file; reload it every time since it changes every 24 hours
+		# TODO: sanity check to make sure that expected channels are present and that the xmltv file isn't otherwise invalid
 		dom = parse(xmltvPath)
 		for program in dom.getElementsByTagName("programme"):
 			tmpShowname = program.getElementsByTagName("title")[0].childNodes[0].data
@@ -242,6 +243,8 @@ def SanityCheck():
 	# TODO: check that PostProcessing.bat is installed and contains code to create *.done files
 	
 	# TODO: check that uTorrent is set to use .!ut extension until download is complete, or that it uses a separate "completed download" directory
+	
+	# TODO: On Linux check for correct permissions on all write-able directories
 	
 	return True
 
