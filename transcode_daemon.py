@@ -34,12 +34,14 @@ if os.name == 'nt':
 	xmltvPath = "C:\\Documents and Settings\\All Users\\Application Data\\NPVR\\Scripts\\xmltv.xml"
 	destinationBasePath = "C:\\media\\video"
 elif os.name == 'posix':
+	uTorrentEnable = False
+	npvrEnable = False
 	handbrakePath = "/usr/bin/"
 	handbrakeBin = "HandBrakeCLI"
 	delugeEnable = True
 	btDownloadPath = "/home/ksharp/Downloads"
 	xmltvPath = "/home/ksharp/xmltv.xml"
-	destinationBasePath = "/media/video"	
+	destinationBasePath = "/media/video"
 btInputFileExt = '.*\.avi$|.*\.mkv$|.*\.mp4$|.*\.3gp$'
 outputFileExt = ".m4v"
 replacementChar = " "
@@ -274,33 +276,34 @@ class Watchdog( object ):
 				logging.error("net start output: " + retVal.strip())
 			
 	def restartUTorrent(self):
-		if os.path.exists(os.path.join(os.environ['WINDIR'], 'System32', 'taskkill.exe')):
-			options = [ '/im', '/f /im' ]
-			for op in options:
-				killCmd = 'taskkill ' + op + ' ' + uTorrentBin
+		if uTorrentEnable:
+			if os.path.exists(os.path.join(os.environ['WINDIR'], 'System32', 'taskkill.exe')):
+				options = [ '/im', '/f /im' ]
+				for op in options:
+					killCmd = 'taskkill ' + op + ' ' + uTorrentBin
+					logging.debug("Killing uTorrent cmd line: " + killCmd)
+					p = subprocess.Popen(killCmd, shell=True, stdout=subprocess.PIPE)
+					retVal = p.stdout.read()
+					logging.debug("Killing uTorrent output: " + retVal.strip())
+					if retVal.find('SUCCESS') >= 0:
+						os.chdir(uTorrentPath)
+						logging.debug("Restarting uTorrent")
+						subprocess.Popen(uTorrentBin)
+						return
+			else:
+				# Windows XP Home Edition does not have taskkill
+				# use tskill util instead
+				killCmd = 'tskill /v utorrent'
 				logging.debug("Killing uTorrent cmd line: " + killCmd)
 				p = subprocess.Popen(killCmd, shell=True, stdout=subprocess.PIPE)
 				retVal = p.stdout.read()
 				logging.debug("Killing uTorrent output: " + retVal.strip())
-				if retVal.find('SUCCESS') >= 0:
+				if retVal.find('End Process') >= 0:
 					os.chdir(uTorrentPath)
 					logging.debug("Restarting uTorrent")
 					subprocess.Popen(uTorrentBin)
 					return
-		else:
-			# Windows XP Home Edition does not have taskkill
-			# use tskill util instead
-			killCmd = 'tskill /v utorrent'
-			logging.debug("Killing uTorrent cmd line: " + killCmd)
-			p = subprocess.Popen(killCmd, shell=True, stdout=subprocess.PIPE)
-			retVal = p.stdout.read()
-			logging.debug("Killing uTorrent output: " + retVal.strip())
-			if retVal.find('End Process') >= 0:
-				os.chdir(uTorrentPath)
-				logging.debug("Restarting uTorrent")
-				subprocess.Popen(uTorrentBin)
-				return
-		logging.error("Unable to restart uTorrent")
+			logging.error("Unable to restart uTorrent")
 
 if __name__ == "__main__":
 	print "Starting transcode daemon, hit Ctrl-C to exit"
