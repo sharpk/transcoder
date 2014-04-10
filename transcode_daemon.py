@@ -7,7 +7,6 @@
 import os
 import glob
 import string
-import msvcrt
 import time
 import re
 import shutil
