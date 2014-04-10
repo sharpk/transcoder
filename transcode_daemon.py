@@ -85,9 +85,15 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 		logging.debug('File "' + destinationFilePath + '" already exists; skipping transcode')
 	else:
 		# Call Handbrake
-		handbrakeCmdLine = "start /wait /low " + handbrakeBin + " -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
+		handbrakeCmdLine = handbrakeBin + " -i \"" + sourceFilePath + "\" -o \"" + destinationFilePath + "\" --preset=\"Normal\" --decomb"
 		if forceSD:
+			# Force standard definition resolution
 			handbrakeCmdLine += " --loose-anamorphic --maxHeight 480"
+		# Lower priority of handbrake process
+		if os.name == 'nt':
+			handbrakeCmdLine = "start /wait /low " + handbrakeCmdLine
+		elif os.name == 'posix':
+			handbrakeCmdLine = "nice -n 5 " + handbrakeCmdLine
 		logging.debug("Handbrake Command Line: " + handbrakeCmdLine)
 		os.chdir(handbrakePath)
 		subprocess.call(handbrakeCmdLine, shell=True)
