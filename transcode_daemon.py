@@ -63,16 +63,23 @@ def btCalcDestinationPath(prettyFileBaseName):
 		if len(splitArr) > 1:
 			resultingFolderName = string.strip(splitArr[0])
 			logging.debug("Found TV folder name: " + resultingFolderName)
-			destinationFilePath = os.path.join( destinationBasePath, resultingFolderName)
-			if not os.path.isdir(destinationFilePath):
-				# TODO make sure that case is ignored when looking for matching directory
+			destinationFilePath = os.path.join(destinationBasePath, resultingFolderName)
+			dirExists = False
+			for d in os.listdir(destinationBasePath):
+				if os.path.isdir(os.path.join(destinationBasePath, d)):
+					if d.lower() == resultingFolderName.lower():
+						dirExists = True
+						destinationFilePath = os.path.join(destinationBasePath, d)
+						logging.debug("Found existing directory: " + destinationFilePath)
+						break
+			if not dirExists:
 				os.mkdir(destinationFilePath)
 				logging.debug("Made new directory: " + destinationFilePath)
-			destinationFilePath = os.path.join( destinationFilePath, prettyFileBaseName + outputFileExt)
+			destinationFilePath = os.path.join(destinationFilePath, prettyFileBaseName + outputFileExt)
 			tvFound = True
 			break
 	if not tvFound:
-		destinationFilePath = os.path.join( destinationBasePath, prettyFileBaseName + outputFileExt)
+		destinationFilePath = os.path.join(destinationBasePath, prettyFileBaseName + outputFileExt)
 		logging.debug("Could not calculate TV folder name")
 	return destinationFilePath
 
