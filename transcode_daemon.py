@@ -227,15 +227,24 @@ def ScanForNPVRFiles():
 
 def SanityCheck():
 	# check that directories exist
-	if not os.path.exists(handbrakePath):
+	if not os.path.exists(os.path.join(handbrakePath, handbrakeBin)):
 		logging.error("Handbrake path does not exist: " + handbrakePath)
+		return False
+	if not os.access(os.path.join(handbrakePath, handbrakeBin), os.X_OK):
+		logging.error("Handbrake binary is not executable: " + os.path.join(handbrakePath, handbrakeBin))
 		return False
 	if not os.path.exists(btDownloadPath):
 		logging.error("bittorrent download path does not exist: " + btDownloadPath)
 		return False
+	if not os.access(btDownloadPath, os.R_OK):
+		logging.error("Current user does not have read permissions on bittorrent download path: " + btDownloadPath)
+		return False		
 	if not os.path.exists(destinationBasePath):
 		logging.error("Destination path does not exist: " + destinationBasePath)
 		return False
+	if not os.access(destinationBasePath, os.W_OK):
+		logging.error("Current user does not have write permissions on destination path: " + destinationBasePath)
+		return False		
 	if npvrEnable:
 		if not os.path.exists(npvrPath):
 			logging.error("NextPVR path does not exist: " + npvrPath)
@@ -250,8 +259,6 @@ def SanityCheck():
 	# TODO: check that PostProcessing.bat is installed and contains code to create *.done files
 	
 	# TODO: check that uTorrent is set to use .!ut extension until download is complete, or that it uses a separate "completed download" directory
-	
-	# TODO: On Linux check for correct permissions on all write-able directories
 	
 	return True
 
