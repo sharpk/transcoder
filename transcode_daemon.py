@@ -39,9 +39,9 @@ elif os.name == 'posix':
 	handbrakePath = "/usr/bin/"
 	handbrakeBin = "HandBrakeCLI"
 	delugeEnable = True
-	btDownloadPath = "/home/ksharp/Downloads"
+	btDownloadPath = "/home/ksharp/Downloads/BTComplete"
 	xmltvPath = "/home/ksharp/xmltv.xml"
-	destinationBasePath = "/media/video"
+	destinationBasePath = "/mnt/datadump/media/video"
 btInputFileExt = '.*\.avi$|.*\.mkv$|.*\.mp4$|.*\.3gp$'
 outputFileExt = ".m4v"
 replacementChar = " "
