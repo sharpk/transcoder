@@ -22,7 +22,7 @@ dontDeleteSourceFiles = False
 exitOnException = True
 maintenanceTime = 4 # hour of the day (in 24 hour format) to restart troublesome processes
 if os.name == 'nt':
-	handbrakePath = "C:\\Program Files\\Handbrake"\
+	handbrakePath = "C:\\Program Files\\Handbrake"
 	handbrakeBin = "HandbrakeCLI.exe"
 	uTorrentEnable = True
 	uTorrentPath = "C:\\Program Files\\uTorrent"
@@ -41,7 +41,7 @@ elif os.name == 'posix':
 	delugeEnable = True
 	btDownloadPath = "/home/ksharp/Downloads/BTComplete"
 	xmltvPath = "/home/ksharp/xmltv.xml"
-	destinationBasePath = "/mnt/datadump/media/video"
+	destinationBasePath = "/mnt/datadump/media/video/TV"
 btInputFileExt = '.*\.avi$|.*\.mkv$|.*\.mp4$|.*\.3gp$'
 outputFileExt = ".m4v"
 replacementChar = " "
