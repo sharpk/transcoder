@@ -20,6 +20,7 @@ loglevel = logging.DEBUG
 forceSD = True
 dontDeleteSourceFiles = False
 exitOnException = True
+convertVideoFiles = False
 maintenanceTime = 4 # hour of the day (in 24 hour format) to restart troublesome processes
 if os.name == 'nt':
 	handbrakePath = "C:\\Program Files\\Handbrake"
@@ -75,11 +76,11 @@ def btCalcDestinationPath(prettyFileBaseName):
 			if not dirExists:
 				os.mkdir(destinationFilePath)
 				logging.debug("Made new directory: " + destinationFilePath)
-			destinationFilePath = os.path.join(destinationFilePath, prettyFileBaseName + outputFileExt)
+			destinationFilePath = os.path.join(destinationFilePath, prettyFileBaseName)
 			tvFound = True
 			break
 	if not tvFound:
-		destinationFilePath = os.path.join(destinationBasePath, prettyFileBaseName + outputFileExt)
+		destinationFilePath = os.path.join(destinationBasePath, prettyFileBaseName)
 		logging.debug("Could not calculate TV folder name")
 	return destinationFilePath
 
@@ -121,7 +122,17 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 	else:
 		logging.error("Error: file " + destinationFilePath + " does not exist. Handbrake probably failed.")
 		return False
-	
+
+def CopyVideoFile(sourceFilePath, destinationFilePath):
+	if dontDeleteSourceFiles:
+		logging.debug("Not deleting source file since dontDeleteSourceFiles == True")
+		shutil.copyfile(sourceFilePath, destinationFilePath)
+		return True
+	else:
+		logging.debug("Moving source file to dest")
+		shutil.move(sourceFilePath, destinationFilePath)
+		return True
+
 def ScanForBtFiles():
 	os.chdir(btDownloadPath)	
 	for f in os.listdir('.'):
@@ -130,11 +141,19 @@ def ScanForBtFiles():
 			logging.debug("Found a file: " + sourceFilePath)
 			# replace dots so it appears correctly on Roku
 			prettyFileBaseName = btMakePrettyFileName(sourceFilePath)
+			if convertVideoFiles:
+				fileExt = outputFileExt
+			else:
+				fileExt = os.path.splitext(sourceFilePath)[1]
 			# if it's a TV episode then calculate a show folder, create the folder if necessary, and calc final path
 			destinationFilePath = btCalcDestinationPath(prettyFileBaseName)
+			destinationFilePath = destinationFilePath + fileExt
 			logging.debug("Prettified destination path: " + destinationFilePath)
 			# Use Handbrake to do the transcode
-			ConvertVideoFile(sourceFilePath, destinationFilePath)
+			if convertVideoFiles:
+				ConvertVideoFile(sourceFilePath, destinationFilePath)
+			else:
+				CopyVideoFile(sourceFilePath, destinationFilePath)
 
 def IsNPVRBusy():
 	if not npvrEnable:
@@ -215,7 +234,10 @@ def ScanForNPVRFiles():
 					# TODO: run comskip and comclean(2|3) to remove commercials
 					# run handbrake to convert file (and delete source)
 					sourceFilePath = os.path.join(npvrRecordingPath, d, sourceFile)
-					retVal = ConvertVideoFile(sourceFilePath, destinationFilePath)
+					if convertVideoFiles:
+						retVal = ConvertVideoFile(sourceFilePath, destinationFilePath)
+					else:
+						retVal = CopyVideoFile(sourceFilePath, destinationFilePath)
 					# delete .done file
 					if retVal:
 						logging.debug("Removing .done file: " + doneFilePath)
