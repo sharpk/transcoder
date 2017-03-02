@@ -84,6 +84,19 @@ def btCalcDestinationPath(prettyFileBaseName):
 		logging.debug("Could not calculate TV folder name")
 	return destinationFilePath
 
+def DeleteSourceFile(sourcePath):
+	if dontDeleteSourceFiles:
+		logging.debug("Not deleting source file since dontDeleteSourceFiles == True")
+		return True
+	else:
+		logging.debug("Deleting source file")
+		try:
+			os.remove(sourcePath)
+		except Exception as e:
+			# log the file delete failure and continue processing other files
+			logging.exception(e)
+		return True
+
 #returns True if successful, False if there was an error
 def ConvertVideoFile(sourceFilePath, destinationFilePath):
 	# don't start Handbrake if NPVR is recording
@@ -108,30 +121,17 @@ def ConvertVideoFile(sourceFilePath, destinationFilePath):
 		subprocess.call(handbrakeCmdLine, shell=True)
 	# cleanup source file
 	if os.path.exists(destinationFilePath):
-		if dontDeleteSourceFiles:
-			logging.debug("Not deleting source file since dontDeleteSourceFiles == True")
-			return True
-		else:
-			logging.debug("Deleting source file")
-			try:
-				os.remove(sourceFilePath)
-			except Exception as e:
-				# log the file delete failure and continue processing other files
-				logging.exception(e)
-			return True
+		DeleteSourceFile(sourceFilePath)
+		return True
 	else:
 		logging.error("Error: file " + destinationFilePath + " does not exist. Handbrake probably failed.")
 		return False
 
 def CopyVideoFile(sourceFilePath, destinationFilePath):
-	if dontDeleteSourceFiles:
-		logging.debug("Not deleting source file since dontDeleteSourceFiles == True")
-		shutil.copyfile(sourceFilePath, destinationFilePath)
-		return True
-	else:
-		logging.debug("Moving source file to dest")
-		shutil.move(sourceFilePath, destinationFilePath)
-		return True
+	logging.debug("Copying source file to destination")
+	shutil.copyfile(sourceFilePath, destinationFilePath)
+	DeleteSourceFile(sourceFilePath)
+	return True
 
 def ScanForBtFiles():
 	os.chdir(btDownloadPath)	
