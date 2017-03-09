@@ -133,27 +133,35 @@ def CopyVideoFile(sourceFilePath, destinationFilePath):
 	DeleteSourceFile(sourceFilePath)
 	return True
 
-def ScanForBtFiles():
-	os.chdir(btDownloadPath)	
-	for f in os.listdir('.'):
-		if re.match(btInputFileExt, f):
-			sourceFilePath = os.path.join(btDownloadPath, f)
-			logging.debug("Found a file: " + sourceFilePath)
-			# replace dots so it appears correctly on Roku
-			prettyFileBaseName = btMakePrettyFileName(sourceFilePath)
-			if convertVideoFiles:
-				fileExt = outputFileExt
-			else:
-				fileExt = os.path.splitext(sourceFilePath)[1]
-			# if it's a TV episode then calculate a show folder, create the folder if necessary, and calc final path
-			destinationFilePath = btCalcDestinationPath(prettyFileBaseName)
-			destinationFilePath = destinationFilePath + fileExt
-			logging.debug("Prettified destination path: " + destinationFilePath)
-			# Use Handbrake to do the transcode
-			if convertVideoFiles:
-				ConvertVideoFile(sourceFilePath, destinationFilePath)
-			else:
-				CopyVideoFile(sourceFilePath, destinationFilePath)
+def BtProcessFile(sourceFilePath):
+	if re.match(btInputFileExt, os.path.basename(sourceFilePath)):
+		logging.debug("Found a file: " + sourceFilePath)
+		# replace dots so it appears correctly on Roku
+		prettyFileBaseName = btMakePrettyFileName(sourceFilePath)
+		if convertVideoFiles:
+			fileExt = outputFileExt
+		else:
+			fileExt = os.path.splitext(sourceFilePath)[1]
+		# if it's a TV episode then calculate a show folder, create the folder if necessary, and calc final path
+		destinationFilePath = btCalcDestinationPath(prettyFileBaseName)
+		destinationFilePath = destinationFilePath + fileExt
+		logging.debug("Prettified destination path: " + destinationFilePath)
+		# Use Handbrake to do the transcode
+		if convertVideoFiles:
+			ConvertVideoFile(sourceFilePath, destinationFilePath)
+		else:
+			CopyVideoFile(sourceFilePath, destinationFilePath)
+		#TODO: cleanup subdirs in btDownloadPath
+
+def ScanForBtFiles(d):
+	for f in os.listdir(d):
+		fullpath = os.path.join(d,f)
+		if os.path.isfile(fullpath):
+			BtProcessFile(fullpath)
+		elif os.path.isdir(fullpath):
+			# recurse into subdir
+			logging.debug("ScanForBtFiles: Recursing into subdir: " + f)
+			ScanForBtFiles(fullpath)
 
 def IsNPVRBusy():
 	if not npvrEnable:
@@ -355,7 +363,7 @@ if __name__ == "__main__":
 	while True:
 		try:
 			w.check()
-			ScanForBtFiles()
+			ScanForBtFiles(btDownloadPath)
 			ScanForNPVRFiles()
 			time.sleep(pollRate*60)
 		except KeyboardInterrupt:
